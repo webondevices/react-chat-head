@@ -1,5 +1,5 @@
 import React from 'react';
-import { Motion, spring } from 'react-motion';
+import { StaggeredMotion, spring } from 'react-motion';
 import element from './App.css';
 
 class App extends React.Component {
@@ -24,6 +24,7 @@ class App extends React.Component {
         this._handlePointerDown = this._handlePointerDown.bind(this);
         this._handlePointerUp = this._handlePointerUp.bind(this);
         this._changeMessages = this._changeMessages.bind(this);
+        this._getStyles = this._getStyles.bind(this);
     }
 
     componentDidMount() {
@@ -107,43 +108,73 @@ class App extends React.Component {
       this.setState({messages: this.state.messages + amount});
     }
 
-    render() {
-        const springSettings = {
-            stiffness: 200,
-            damping: 12
+    _getStyles(prevStyles) {
+      // `prevStyles` is the interpolated value of the last tick
+      const endValue = prevStyles.map((_, i) => {
+        const springSettingsTrail = {
+          stiffness: 200,
+          damping: 18
         };
+        const springSettingsMain = {
+          stiffness: 200,
+          damping: 12
+        };
+        return i === 0
+          ? {
+              x: spring(this.state.pointer[0], springSettingsMain),
+              y: spring(this.state.pointer[1], springSettingsMain)
+          }
+          : {
+              x: spring(prevStyles[i - 1].x, springSettingsTrail),
+              y: spring(prevStyles[i - 1].y, springSettingsTrail),
+            };
+      });
+
+      return endValue;
+    }
+
+    render() {
+        // const springSettings = {
+        //     stiffness: 200,
+        //     damping: 12
+        // };
       
-        let x = this.state.pointer[0];
-        let y = this.state.pointer[1];
+        // let x = this.state.pointer[0];
+        // let y = this.state.pointer[1];
 
-        if (this.state.position === 'left') {
-          x = this.state.messages < 1 ? x - 100 : x; 
-        }
+        // if (this.state.position === 'left') {
+        //   x = this.state.messages < 1 ? x - 100 : x; 
+        // }
 
-        if (this.state.position === 'right') {
-          x = this.state.messages < 1 ? x + 100 : x; 
-        }
+        // if (this.state.position === 'right') {
+        //   x = this.state.messages < 1 ? x + 100 : x; 
+        // }
 
         return (
             <div>
-                <Motion style={{
-                    x: spring(x, springSettings),
-                    y: spring(y, springSettings)}}>
-                
-                        {interpolatingStyle =>
-                            <div
-                                onMouseDown={this._handlePointerDown.bind(null, [interpolatingStyle.x, interpolatingStyle.y])}
-                                onTouchStart={this._handleTouchStart.bind(null, [interpolatingStyle.x, interpolatingStyle.y])}
-                                className={element.elem}
-                                style={{
-                                    left: interpolatingStyle.x + 'px',
-                                    top: interpolatingStyle.y + 'px'}
-                                }>
-                                    <div className={element.chatHead}/>
-                                    <div className={element.chatCounter + ' ' + element[this.state.position]}>{this.state.messages}</div>
-                            </div>
-                        }
-                </Motion>
+                <StaggeredMotion
+                  defaultStyles={[1,2,3].map(() => ({x: 0, y: 0}))}
+                  styles={this._getStyles}>
+                  {balls =>
+                    <div>
+                      {balls.map(({x, y}, i) =>
+                        <div
+                            key={i}
+                            onMouseDown={this._handlePointerDown.bind(null, [x, y])}
+                            onTouchStart={this._handleTouchStart.bind(null, [x, y])}
+                            className={element.elem}
+                            style={{
+                                left: x + 'px',
+                                top: y + 'px',
+                                zIndex: balls.length - i}
+                            }>
+                                <div className={element.chatHead}/>
+                                <div className={element.chatCounter + ' ' + element[this.state.position]}>{this.state.messages}</div>
+                        </div>
+                      )}
+                    </div>
+                  }
+                </StaggeredMotion>
                 <button onClick={this._changeMessages.bind(this,  1)}>Add</button>
                 <button onClick={this._changeMessages.bind(this, -1)}>Remove</button>
             </div>

@@ -19,12 +19,23 @@ body {
 .elem:active {
     transform: scale(0.9);
 }
+
+.elem:nth-child(1) > .chat-head {
+  background-image: url(https://scontent-lhr3-1.xx.fbcdn.net/t31.0-8/14188657_1198636253489891_8215837322656976911_o.jpg);
+}
+
+.elem:nth-child(2) > .chat-head {
+  background-image: url(https://scontent-lhr3-1.xx.fbcdn.net/v/t1.0-9/13892342_1188082011213431_3555602162636987564_n.jpg?oh=317ad3a1b535939f8c12f2d891af473a&oe=58C7A8D9);
+}
+
+.elem:nth-child(3) > .chat-head {
+  background-image: url(https://scontent-lhr3-1.xx.fbcdn.net/v/t1.0-9/1471357_554473864642975_989869873_n.jpg?oh=92b8cb397f7e27045245fb72710b019a&oe=58BD437A);
+}
   
 .elem > .chat-head {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
-    background-image: url(https://scontent-lhr3-1.xx.fbcdn.net/t31.0-8/14188657_1198636253489891_8215837322656976911_o.jpg);
+    border-radius: 50%;  
     background-size: 100%;
     background-position: center;
     filter: drop-shadow(1px 1px 1px black);
