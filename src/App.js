@@ -119,10 +119,22 @@ class App extends React.Component {
           stiffness: 200,
           damping: 12
         };
+
+        let x = this.state.pointer[0];
+        let y = this.state.pointer[1];
+
+        if (this.state.position === 'left') {
+          x = this.state.messages < 1 ? x - 100 : x; 
+        }
+
+        if (this.state.position === 'right') {
+          x = this.state.messages < 1 ? x + 100 : x; 
+        }
+
         return i === 0
           ? {
-              x: spring(this.state.pointer[0], springSettingsMain),
-              y: spring(this.state.pointer[1], springSettingsMain)
+              x: spring(x, springSettingsMain),
+              y: spring(y, springSettingsMain)
           }
           : {
               x: spring(prevStyles[i - 1].x, springSettingsTrail),
@@ -134,22 +146,6 @@ class App extends React.Component {
     }
 
     render() {
-        // const springSettings = {
-        //     stiffness: 200,
-        //     damping: 12
-        // };
-      
-        // let x = this.state.pointer[0];
-        // let y = this.state.pointer[1];
-
-        // if (this.state.position === 'left') {
-        //   x = this.state.messages < 1 ? x - 100 : x; 
-        // }
-
-        // if (this.state.position === 'right') {
-        //   x = this.state.messages < 1 ? x + 100 : x; 
-        // }
-
         return (
             <div>
                 <StaggeredMotion
@@ -177,6 +173,9 @@ class App extends React.Component {
                 </StaggeredMotion>
                 <button onClick={this._changeMessages.bind(this,  1)}>Add</button>
                 <button onClick={this._changeMessages.bind(this, -1)}>Remove</button>
+
+                <div className={element.bin + ' ' + (this.state.isPressed ? element.active : null)}>X</div>
+
             </div>
         );
     }
