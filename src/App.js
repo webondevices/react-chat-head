@@ -1,5 +1,5 @@
 import React from 'react';
-import { StaggeredMotion, spring } from 'react-motion';
+import { StaggeredMotion, Motion, spring } from 'react-motion';
 import element from './App.css';
 
 class App extends React.Component {
@@ -17,6 +17,12 @@ class App extends React.Component {
       
         this._vW = window.innerWidth;
         this._vH = window.innerHeight;
+
+        this._xHover = 0;
+        this._yHover = 0;
+
+        this._snapped = false;
+        this._dumped = false;
 
         this._handleTouchStart = this._handleTouchStart.bind(this);
         this._handleTouchMove = this._handleTouchMove.bind(this);
@@ -90,6 +96,12 @@ class App extends React.Component {
             x = this.state.pointer[0] < vW / 2 ? -10 : vW - 50;
         }
 
+        // If dumped on X
+        if (this._snapped) {
+          this._dumped = true;
+          this.setState({messages: 0});
+        }
+
         position = x === -10 ? 'left' : 'right';
         
         // Limit vertically
@@ -105,6 +117,7 @@ class App extends React.Component {
     }
   
     _changeMessages(amount) {
+      this._dumped = false;
       this.setState({messages: this.state.messages + amount});
     }
 
@@ -120,16 +133,35 @@ class App extends React.Component {
           damping: 12
         };
 
+        const magnetStrength = 75;
+
         let x = this.state.pointer[0];
         let y = this.state.pointer[1];
 
-        if (this.state.position === 'left') {
-          x = this.state.messages < 1 ? x - 100 : x; 
+        if (!this._dumped) {
+          if (this.state.position === 'left') {
+            x = this.state.messages < 1 ? x - 100 : x; 
+          }
+
+          if (this.state.position === 'right') {
+            x = this.state.messages < 1 ? x + 100 : x; 
+          }
+        } else {
+          y = this._vH + 200;
         }
 
-        if (this.state.position === 'right') {
-          x = this.state.messages < 1 ? x + 100 : x; 
+        // Snap to X logic
+        if (  (Math.abs(x - ((this._vW / 2) + this.xHover)) < magnetStrength) && (Math.abs(y - (this._vH - 135)) < magnetStrength)  ) {
+          x = (this._vW / 2) + this.xHover - 3;
+          y = this._vH - 129;
+
+          this._snapped = true;
+
+        } else {
+          this._snapped = false;
         }
+
+        if (this._dumped) x = this._vW / 2;
 
         return i === 0
           ? {
@@ -146,6 +178,14 @@ class App extends React.Component {
     }
 
     render() {
+        // X follow heads logic
+        const extent = 10;
+        this.xHover = this.state.pointer[0] < this._vW / 2
+        ? -((this._vW / 2 - this.state.pointer[0]) / extent)
+        : ((this.state.pointer[0] - (this._vW / 2)) / extent);
+        this.xHover = this.xHover - 25;
+        this.yHover = -25;
+
         return (
             <div>
                 <StaggeredMotion
@@ -174,8 +214,21 @@ class App extends React.Component {
                 <button onClick={this._changeMessages.bind(this,  1)}>Add</button>
                 <button onClick={this._changeMessages.bind(this, -1)}>Remove</button>
 
-                <div className={element.bin + ' ' + (this.state.isPressed ? element.active : null)}>X</div>
-
+                <Motion
+                    defaultStyle={{x: -25, y: -25, binY: 200}}
+                    style={{
+                      x: spring(this.xHover),
+                      y: spring(this.yHover),
+                      binY: spring((this.state.isPressed ? 0 : 200))
+                    }}>
+                    {interpolatingStyle =>
+                <div className={element.bin} style={{transform: 'translateY(' + interpolatingStyle.binY + 'px)'}}>
+                   <div className={element.xcontainer + ' ' + (this._snapped ? element.snapped : '')} style={{transform: 'translate('+interpolatingStyle.x+'px, '+interpolatingStyle.y+'px)'}}>
+                      <div className={element.xcircle}></div>
+                      <div className={element.xicon}>X</div>
+                    </div>
+                </div>}
+              </Motion>
             </div>
         );
     }
